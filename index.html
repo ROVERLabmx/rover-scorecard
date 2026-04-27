@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ROVER Brand Clarity Scorecard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #FFFFFF;
+    --bg-sec:    #F5F4F1;
+    --bg-ter:    #EEEDEA;
+    --text:      #0D0D0D;
+    --text-sec:  #6B6B6B;
+    --border:    rgba(0,0,0,0.12);
+    --border-md: rgba(0,0,0,0.25);
+    --border-hv: rgba(0,0,0,0.40);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font: 'DM Sans', system-ui, sans-serif;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  .sc-wrap {
+    width: 100%;
+    max-width: 620px;
+  }
+
+  /* ── Header ── */
+  .sc-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+    margin-bottom: 0.6rem;
+  }
+  .sc-title {
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1.25;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.02em;
+  }
+  .sc-subtitle {
+    font-size: 15px;
+    color: var(--text-sec);
+    line-height: 1.65;
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  /* ── Info box ── */
+  .info-box {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 2rem;
+    background: var(--bg-sec);
+  }
+  .info-box p {
+    font-size: 13.5px;
+    color: var(--text-sec);
+    line-height: 1.65;
+    font-weight: 300;
+  }
+  .info-box strong { font-weight: 500; color: var(--text); }
+
+  /* ── Progress ── */
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+  .progress-meta span {
+    font-size: 12px;
+    color: var(--text-sec);
+    letter-spacing: 0.03em;
+  }
+  .progress-track {
+    height: 1.5px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--text);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── Question ── */
+  .dim-label {
+    font-size: 11px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+    margin-bottom: 0.35rem;
+  }
+  .q-text {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.38;
+    margin-bottom: 0.45rem;
+    letter-spacing: -0.015em;
+  }
+  .q-sub {
+    font-size: 13.5px;
+    color: var(--text-sec);
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  /* ── Options ── */
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 2rem; }
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 14px 16px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.12s;
+    width: 100%;
+  }
+  .opt:hover { border-color: var(--border-md); background: var(--bg-sec); }
+  .opt.selected { border-color: var(--text); background: var(--bg-sec); }
+  .opt-ring {
+    width: 18px; height: 18px; min-width: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-md);
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+  .opt.selected .opt-ring { border-color: var(--text); background: var(--text); }
+  .opt-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--bg);
+    display: none;
+  }
+  .opt.selected .opt-dot { display: block; }
+  .opt-text { font-size: 14px; line-height: 1.55; color: var(--text); font-weight: 300; }
+
+  /* ── Nav ── */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .btn {
+    padding: 10px 22px;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+    letter-spacing: 0.01em;
+  }
+  .btn:hover { background: var(--bg-sec); border-color: var(--border-hv); }
+  .btn.primary {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+  .btn.primary:hover { opacity: 0.82; }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* ── Result ── */
+  .result-tag {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-md);
+    color: var(--text-sec);
+    margin-bottom: 1.1rem;
+  }
+  .result-title {
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.85rem;
+  }
+  .result-desc {
+    font-size: 15px;
+    color: var(--text-sec);
+    line-height: 1.7;
+    font-weight: 300;
+    margin-bottom: 2rem;
+  }
+
+  /* ── Dimension bars ── */
+  .dim-section-label {
+    font-size: 11px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+    margin-bottom: 0.85rem;
+  }
+  .dim-bars { display: flex; flex-direction: column; gap: 11px; margin-bottom: 2rem; }
+  .dim-row { display: flex; align-items: center; gap: 13px; }
+  .dim-name { font-size: 12.5px; color: var(--text-sec); min-width: 160px; font-weight: 300; }
+  .dim-track {
+    flex: 1; height: 3px;
+    background: var(--border);
+    border-radius: 2px; overflow: hidden;
+  }
+  .dim-fill { height: 100%; background: var(--text); border-radius: 2px; transition: width 0.6s ease; }
+  .dim-pct { font-size: 12.5px; color: var(--text); font-weight: 500; min-width: 34px; text-align: right; }
+
+  /* ── Next step block ── */
+  .next-block {
+    border-top: 0.5px solid var(--border);
+    padding-top: 1.5rem;
+    margin-top: 0.5rem;
+  }
+  .next-label {
+    font-size: 11px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+    margin-bottom: 0.6rem;
+  }
+  .next-text {
+    font-size: 14.5px;
+    color: var(--text-sec);
+    line-height: 1.68;
+    font-weight: 300;
+    margin-bottom: 1.25rem;
+  }
+  .cta-btn {
+    display: inline-block;
+    padding: 13px 26px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    transition: opacity 0.15s;
+  }
+  .cta-btn:hover { opacity: 0.8; }
+
+  .restart-link {
+    display: inline-block;
+    margin-top: 1.25rem;
+    font-size: 13px;
+    color: var(--text-sec);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    background: none;
+    border: none;
+    font-family: var(--font);
+  }
+  .restart-link:hover { color: var(--text); }
+
+  /* ── Utility ── */
+  .hidden { display: none !important; }
+
+  /* ── Email gate ── */
+  .email-gate {
+    padding: 2rem 0;
+  }
+  .email-gate h2 {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+  .email-gate p {
+    font-size: 14px;
+    color: var(--text-sec);
+    line-height: 1.65;
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+  }
+  .email-fields { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.25rem; }
+  .email-fields input {
+    padding: 12px 14px;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-md);
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  .email-fields input:focus { border-color: var(--text); }
+  .email-fields input::placeholder { color: var(--text-sec); }
+  .privacy-note {
+    font-size: 12px;
+    color: var(--text-sec);
+    font-weight: 300;
+    margin-top: 0.75rem;
+  }
+</style>
+</head>
+<body>
+<div class="sc-wrap">
+
+  <!-- INTRO -->
+  <div id="intro-screen">
+    <p class="sc-eyebrow">ROVER Lab · Brand Clarity Scorecard</p>
+    <h1 class="sc-title">How aligned is your brand — really?</h1>
+    <p class="sc-subtitle">12 questions. 5 dimensions. One honest read on where your brand stands and what it actually needs. No generic advice — a precise diagnostic built for founders who are serious about building something that lasts.</p>
+    <div class="info-box">
+      <p>The scorecard measures five dimensions: <strong>Purpose clarity · Audience precision · Structural coherence · Strategic momentum · Founder-brand alignment.</strong> You'll receive a profile, a dimension breakdown, and a clear recommended next step.</p>
+    </div>
+    <button class="btn primary" onclick="startScorecard()">Begin the diagnostic →</button>
+  </div>
+
+  <!-- QUESTION -->
+  <div id="question-screen" class="hidden">
+    <div class="progress-meta">
+      <span id="q-counter"></span>
+      <span id="dim-indicator"></span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <p class="dim-label" id="q-dim"></p>
+    <p class="q-text" id="q-text"></p>
+    <p class="q-sub" id="q-sub"></p>
+    <div class="options" id="options"></div>
+    <div class="nav">
+      <button class="btn" id="back-btn" onclick="prevQ()">← Back</button>
+      <button class="btn primary" id="next-btn" onclick="nextQ()" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- EMAIL GATE -->
+  <div id="email-screen" class="hidden">
+    <div class="email-gate">
+      <p class="sc-eyebrow">ROVER Lab · Almost there</p>
+      <h2>Your results are ready.</h2>
+      <p>Enter your name and email to receive your brand clarity profile — and a brief, personalised note on what your score means for your next move.</p>
+      <form id="gate-form"
+            action="https://formspree.io/f/meevnrko"
+            method="POST">
+        <!-- hidden fields populated by JS before submit -->
+        <input type="hidden" name="_subject" id="hf-subject" value="ROVER Scorecard submission" />
+        <input type="hidden" name="profile"  id="hf-profile" value="" />
+        <input type="hidden" name="scores"   id="hf-scores"  value="" />
+        <input type="hidden" name="_next"    id="hf-next"    value="" />
+        <div class="email-fields">
+          <input type="text"  name="name"  id="input-name"  placeholder="Your first name" />
+          <input type="email" name="email" id="input-email" placeholder="Your email address" required />
+        </div>
+        <button type="submit" class="btn primary" id="submit-gate-btn" onclick="prepareSubmit()">See my results →</button>
+        <p id="gate-error" style="color:#c0392b;font-size:13px;margin-top:0.6rem;display:none;">Please enter a valid email address.</p>
+        <p class="privacy-note">No spam. No sequences. Just your results and one honest follow-up if it's relevant.</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result-screen" class="hidden">
+    <p class="sc-eyebrow">ROVER Lab · Your diagnostic result</p>
+    <span class="result-tag" id="r-tag"></span>
+    <h2 class="result-title" id="r-title"></h2>
+    <p class="result-desc" id="r-desc"></p>
+
+    <p class="dim-section-label">Your dimension scores</p>
+    <div class="dim-bars" id="dim-bars"></div>
+
+    <div class="next-block">
+      <p class="next-label">Recommended next step</p>
+      <p class="next-text" id="r-next"></p>
+      <a id="cta-btn" class="cta-btn" href="mailto:defprudence@gmail.com" target="_blank" rel="noopener">Book a Brand Alignment Session →</a>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <button class="restart-link" onclick="restart()">Retake the scorecard</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DIMS = [
+  "Purpose clarity",
+  "Audience precision",
+  "Structural coherence",
+  "Strategic momentum",
+  "Founder-brand alignment"
+];
+
+const QS = [
+  {
+    dim: 0,
+    text: "Why does your brand exist — beyond making money?",
+    sub: "Not the official answer. The one you'd give at 11pm when someone genuinely asks.",
+    opts: [
+      { t: "I have a clear, specific answer I can say in one sentence.", s: 4 },
+      { t: "I have a sense of it, but it shifts depending on the conversation.", s: 2 },
+      { t: "I know it matters but I struggle to put it into words.", s: 1 },
+      { t: "Honestly, I haven't thought about it this way yet.", s: 0 }
+    ]
+  },
+  {
+    dim: 0,
+    text: "If your brand disappeared tomorrow, would anyone notice — and why?",
+    sub: "This reveals whether your purpose creates real differentiation or just fills a category.",
+    opts: [
+      { t: "Yes. There's a specific community who would feel a genuine loss.", s: 4 },
+      { t: "Probably, but mainly because of price or convenience — not what we stand for.", s: 2 },
+      { t: "I'm not sure. We haven't earned that kind of loyalty yet.", s: 1 },
+      { t: "We're too early to answer this honestly.", s: 0 }
+    ]
+  },
+  {
+    dim: 1,
+    text: "Describe your ideal customer in one sentence — without using demographics.",
+    sub: "Age, location, income are not your audience. Their beliefs, fears, and desires are.",
+    opts: [
+      { t: "I can describe their worldview, what they believe, and what keeps them up at night.", s: 4 },
+      { t: "I know who they are in general terms — industry, age, lifestyle.", s: 2 },
+      { t: "We're targeting a broad group. We don't want to narrow too much.", s: 1 },
+      { t: "We'll figure this out once we have more customers.", s: 0 }
+    ]
+  },
+  {
+    dim: 1,
+    text: "Who is your brand explicitly NOT for?",
+    sub: "Brands that try to speak to everyone end up resonating with no one. Exclusion is a design choice.",
+    opts: [
+      { t: "I can name them clearly — and I'm comfortable with that boundary.", s: 4 },
+      { t: "I have a rough sense, but I'm cautious about closing doors.", s: 2 },
+      { t: "I haven't thought about it this way. I want to reach as many people as possible.", s: 1 },
+      { t: "We'd rather let the market decide.", s: 0 }
+    ]
+  },
+  {
+    dim: 2,
+    text: "How consistent is your brand across every touchpoint — what you say, how you look, what you deliver?",
+    sub: "Touchpoints include: social media, your pitch, packaging, how you answer the phone, how your team talks about the brand.",
+    opts: [
+      { t: "Fully consistent. Someone could encounter us anywhere and recognise us immediately.", s: 4 },
+      { t: "Mostly, but there are gaps — especially in channels we haven't invested in.", s: 3 },
+      { t: "Not very. Different people communicate differently. Visuals and language don't always match.", s: 1 },
+      { t: "We don't have a defined system yet. It's mostly intuitive.", s: 0 }
+    ]
+  },
+  {
+    dim: 2,
+    text: "Could someone explain what you do, who it's for, and why it matters — in under 30 seconds — without you in the room?",
+    sub: "This is the real test of structural clarity. If it requires you to be present to explain, it isn't clear enough.",
+    opts: [
+      { t: "Yes — we have clear messaging and a trained team that handles this.", s: 4 },
+      { t: "Most people get the general idea, but the specifics get muddled.", s: 2 },
+      { t: "Honestly, it's hard to explain even when I'm in the room.", s: 1 },
+      { t: "We're still figuring out how to talk about ourselves.", s: 0 }
+    ]
+  },
+  {
+    dim: 3,
+    text: "Do you have a written plan for the next 90 days — with specific outcomes, not just activities?",
+    sub: "Activities are things you do. Outcomes are what changes as a result. Most founders confuse them.",
+    opts: [
+      { t: "Yes. Written, with defined outcomes, timelines, and someone accountable for each.", s: 4 },
+      { t: "I have priorities in my head, but they're not formally structured.", s: 2 },
+      { t: "We respond to what comes up. The market moves fast.", s: 1 },
+      { t: "Not yet. We're still in the early stages.", s: 0 }
+    ]
+  },
+  {
+    dim: 3,
+    text: "When you look at everything you're doing right now — how much of it directly moves you toward your most important goal?",
+    sub: "This is a measure of strategic focus versus productive-feeling noise.",
+    opts: [
+      { t: "Most of it. I've made deliberate cuts to stay focused.", s: 4 },
+      { t: "About half. There's a lot that feels necessary but probably isn't.", s: 2 },
+      { t: "I'm busy, but I question whether I'm moving in the right direction.", s: 1 },
+      { t: "I don't have a most important goal right now. Everything feels equally urgent.", s: 0 }
+    ]
+  },
+  {
+    dim: 4,
+    text: "How much does your brand reflect who you actually are — your real values, energy, and way of seeing the world?",
+    sub: "Not what you think a 'professional brand' should look like. What actually feels true.",
+    opts: [
+      { t: "Completely. The brand is a direct expression of how I think and what I believe.", s: 4 },
+      { t: "Mostly, but I've made concessions to what I thought the market expected.", s: 2 },
+      { t: "Not much. I built what I thought I should, not what felt natural.", s: 1 },
+      { t: "I separated 'me' from 'the business' intentionally.", s: 0 }
+    ]
+  },
+  {
+    dim: 4,
+    text: "When you talk about your brand to someone you respect — do you feel proud, or do you feel like you're performing?",
+    sub: "This is one of the most honest diagnostic questions in brand strategy. The answer is rarely neutral.",
+    opts: [
+      { t: "Genuinely proud. I believe in it completely.", s: 4 },
+      { t: "Mostly proud, but there are parts I'm still working through.", s: 3 },
+      { t: "It depends on who I'm talking to. I adjust the story based on the audience.", s: 1 },
+      { t: "More performing than proud, if I'm honest.", s: 0 }
+    ]
+  },
+  {
+    dim: 4,
+    text: "If your brand were a person you had to spend a full day with — would you enjoy the company?",
+    sub: "Brands that founders don't genuinely like tend to drift, get abandoned, or get out-executed by founders who love what they built.",
+    opts: [
+      { t: "Yes — it's basically me at my best. We'd get along perfectly.", s: 4 },
+      { t: "Mostly. There are elements I'd change if I could start over.", s: 2 },
+      { t: "Probably not. The brand has drifted from what I originally wanted.", s: 1 },
+      { t: "I've never thought of it this way.", s: 0 }
+    ]
+  },
+  {
+    dim: 0,
+    text: "Complete this sentence honestly: 'We exist to _____ for _____ so that _____.'",
+    sub: "Fill it in mentally before you answer. The ease or difficulty tells you everything about your purpose clarity.",
+    opts: [
+      { t: "I completed it immediately and it felt true.", s: 4 },
+      { t: "I completed it, but it felt generic — like something anyone could say.", s: 2 },
+      { t: "I struggled with it. The middle or end felt unclear.", s: 1 },
+      { t: "I couldn't complete it in a way that felt honest.", s: 0 }
+    ]
+  }
+];
+
+const PROFILES = {
+  explorer: {
+    tag: "Profile 01 — The Unmapped Explorer",
+    title: "You know why. You haven't built the how yet.",
+    desc: "Your purpose is real and your conviction runs deep — but the structural layer of your brand hasn't caught up with your vision. The gap between what you believe and what the world experiences when they encounter your brand is where your growth is stuck. This is one of the most hopeful misalignments to work with: the raw material is there. What's needed is architecture.",
+    next: "The Brand Launchpad Program is built precisely for this moment. Over 6 months, we take your purpose and build a complete, operational brand system around it — one that a team can run, a market can understand, and a founder can be proud of."
+  },
+  builder: {
+    tag: "Profile 02 — The Busy Builder",
+    title: "You're moving. The question is: in the right direction?",
+    desc: "You have momentum, activity, and you're clearly not someone who overthinks before acting. The risk is that speed and direction aren't the same thing. Brands built on execution without clarity accumulate complexity: too many channels, inconsistent messaging, a team that can't explain what you do without you in the room.",
+    next: "A Brand Alignment Session will give you the most valuable thing a busy founder can have: a clear, honest read on what's actually going on and a prioritised direction for the next 90 days. One conversation. Real clarity."
+  },
+  invisible: {
+    tag: "Profile 03 — The Invisible Brand",
+    title: "Something real exists here. The market just doesn't know it yet.",
+    desc: "Your brand is more coherent internally than most — your team understands it, your delivery is consistent, your values are genuine. The gap is external: audience precision, visibility, and the ability to articulate your difference in a way that actually lands with the right people. You've built something real. Now it needs to be seen, understood, and chosen.",
+    next: "Strategy Design & Deployment is likely your most efficient path. We diagnose the external gap, redesign your positioning and messaging architecture, and build the system that makes your brand visible to the people it's made for."
+  },
+  misaligned: {
+    tag: "Profile 04 — The Misaligned Founder",
+    title: "The brand and the person are pulling in different directions.",
+    desc: "This is the most important misalignment to identify early. When a founder and their brand aren't aligned, the brand tends to feel hollow to the market, exhausting to maintain, and impossible to scale. Somewhere along the way, the brand became something other than what you actually believe — built for a perceived expectation, or someone else's definition of success.",
+    next: "Before strategy, before execution, before any deliverable — you need a space to untangle what's actually going on. The Brand Alignment Session is a guided conversation designed exactly for this: no judgment, no prescriptions, just clarity."
+  }
+};
+
+let currentQ = 0;
+let answers = new Array(QS.length).fill(null);
+
+function startScorecard() {
+  document.getElementById('intro-screen').classList.add('hidden');
+  document.getElementById('question-screen').classList.remove('hidden');
+  renderQ();
+}
+
+function renderQ() {
+  const q = QS[currentQ];
+  const total = QS.length;
+  document.getElementById('q-counter').textContent = `Question ${currentQ + 1} of ${total}`;
+  document.getElementById('dim-indicator').textContent = DIMS[q.dim];
+  document.getElementById('progress-fill').style.width = `${(currentQ / total) * 100}%`;
+  document.getElementById('q-dim').textContent = DIMS[q.dim];
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-sub').textContent = q.sub;
+
+  const container = document.getElementById('options');
+  container.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt' + (answers[currentQ] === i ? ' selected' : '');
+    btn.innerHTML = `<span class="opt-ring"><span class="opt-dot"></span></span><span class="opt-text">${opt.t}</span>`;
+    btn.onclick = () => selectOpt(i);
+    container.appendChild(btn);
+  });
+
+  document.getElementById('back-btn').disabled = currentQ === 0;
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.disabled = answers[currentQ] === null;
+  nextBtn.textContent = currentQ === total - 1 ? 'See my results →' : 'Continue →';
+}
+
+function selectOpt(i) {
+  answers[currentQ] = i;
+  document.querySelectorAll('.opt').forEach((b, idx) => {
+    b.classList.toggle('selected', idx === i);
+  });
+  document.getElementById('next-btn').disabled = false;
+}
+
+function nextQ() {
+  if (answers[currentQ] === null) return;
+  if (currentQ < QS.length - 1) {
+    currentQ++;
+    renderQ();
+  } else {
+    document.getElementById('question-screen').classList.add('hidden');
+    document.getElementById('email-screen').classList.remove('hidden');
+  }
+}
+
+function prevQ() {
+  if (currentQ > 0) { currentQ--; renderQ(); }
+}
+
+function prepareSubmit() {
+  const respEmail = (document.getElementById('input-email').value || '').trim();
+  const errorEl   = document.getElementById('gate-error');
+
+  if (!respEmail || !/\S+@\S+\.\S+/.test(respEmail)) {
+    errorEl.style.display = 'block';
+    event.preventDefault();
+    return;
+  }
+  errorEl.style.display = 'none';
+
+  // Score calculation
+  const dimScores = [0,0,0,0,0];
+  const dimMax    = [0,0,0,0,0];
+  QS.forEach((q, qi) => {
+    const max = Math.max(...q.opts.map(o => o.s));
+    dimMax[q.dim] += max;
+    if (answers[qi] !== null) dimScores[q.dim] += q.opts[answers[qi]].s;
+  });
+  const pct     = dimScores.map((s, i) => dimMax[i] > 0 ? Math.round((s / dimMax[i]) * 100) : 0);
+  const profile = getProfile(pct);
+  const p       = PROFILES[profile];
+
+  const respName   = (document.getElementById('input-name').value || '').trim();
+  const dimSummary = DIMS.map((d, i) => `${d}: ${pct[i]}%`).join(' | ');
+
+  // Populate hidden fields for Formspree
+  document.getElementById('hf-subject').value = `ROVER Scorecard — ${p.tag} — ${respName || respEmail}`;
+  document.getElementById('hf-profile').value = p.tag;
+  document.getElementById('hf-scores').value  = dimSummary;
+
+  // Store results in sessionStorage so we can render after Formspree redirect
+  const resultData = { pct, profile, respName, respEmail };
+  try { sessionStorage.setItem('rover_result', JSON.stringify(resultData)); } catch(e) {}
+
+  // Tell Formspree to redirect back to this page with #results hash
+  document.getElementById('hf-next').value = window.location.href.split('#')[0] + '#results';
+
+  // Allow native form POST to proceed
+  document.getElementById('submit-gate-btn').disabled = true;
+  document.getElementById('submit-gate-btn').textContent = 'Sending…';
+}
+
+// On page load — check if we're returning from a Formspree redirect
+window.addEventListener('DOMContentLoaded', () => {
+  if (window.location.hash === '#results') {
+    try {
+      const saved = sessionStorage.getItem('rover_result');
+      if (saved) {
+        const { pct, profile, respName, respEmail } = JSON.parse(saved);
+        sessionStorage.removeItem('rover_result');
+        const p = PROFILES[profile];
+        document.getElementById('intro-screen').classList.add('hidden');
+        renderResultScreen(pct, profile, p, respName, respEmail);
+      }
+    } catch(e) {}
+  }
+});
+
+function renderResultScreen(pct, profile, p, respName, respEmail) {
+  document.getElementById('email-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.remove('hidden');
+
+  document.getElementById('r-tag').textContent   = p.tag;
+  document.getElementById('r-title').textContent = p.title;
+  document.getElementById('r-desc').textContent  = p.desc;
+  document.getElementById('r-next').textContent  = p.next;
+
+  const mailSubject = encodeURIComponent(`Brand Alignment Session — ${p.tag}`);
+  const mailBody    = encodeURIComponent(
+    `Hi Daniel,\n\nI just completed the ROVER Brand Clarity Scorecard.\n\nMy profile: ${p.tag}\n\nDimension scores:\n${DIMS.map((d,i)=>`${d}: ${pct[i]}%`).join('\n')}\n\nI'd love to book a Brand Alignment Session.\n\n${respName ? 'Name: ' + respName + '\n' : ''}${respEmail ? 'Email: ' + respEmail + '\n' : ''}`
+  );
+  const ctaBtn = document.getElementById('cta-btn');
+  ctaBtn.href = `mailto:defprudence@gmail.com?subject=${mailSubject}&body=${mailBody}`;
+
+  const bars = document.getElementById('dim-bars');
+  bars.innerHTML = '';
+  DIMS.forEach((dimName, i) => {
+    bars.innerHTML += `
+      <div class="dim-row">
+        <span class="dim-name">${dimName}</span>
+        <div class="dim-track"><div class="dim-fill" style="width:${pct[i]}%"></div></div>
+        <span class="dim-pct">${pct[i]}%</span>
+      </div>`;
+  });
+}
+
+function getProfile(pct) {
+  const [purpose, audience, structure, momentum, alignment] = pct;
+  const overall = pct.reduce((a,b) => a+b, 0) / pct.length;
+  if (alignment < 50) return 'misaligned';
+  if (purpose >= 60 && structure < 50) return 'explorer';
+  if (momentum >= 60 && (purpose < 50 || audience < 50)) return 'builder';
+  if (structure >= 55 && audience < 55) return 'invisible';
+  if (overall < 50) return 'misaligned';
+  if (momentum < 45) return 'builder';
+  return 'explorer';
+}
+
+function restart() {
+  currentQ = 0;
+  answers = new Array(QS.length).fill(null);
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('email-screen').classList.add('hidden');
+  document.getElementById('question-screen').classList.remove('hidden');
+  renderQ();
+}
+</script>
+</body>
+</html>
