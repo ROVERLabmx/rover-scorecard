@@ -370,22 +370,14 @@
       <p class="sc-eyebrow">ROVER Lab · Almost there</p>
       <h2>Your results are ready.</h2>
       <p>Enter your name and email to receive your brand clarity profile — and a brief, personalised note on what your score means for your next move.</p>
-      <form id="gate-form"
-            action="https://formspree.io/f/meevnrko"
-            method="POST">
-        <!-- hidden fields populated by JS before submit -->
-        <input type="hidden" name="_subject" id="hf-subject" value="ROVER Scorecard submission" />
-        <input type="hidden" name="profile"  id="hf-profile" value="" />
-        <input type="hidden" name="scores"   id="hf-scores"  value="" />
-        <input type="hidden" name="_next"    id="hf-next"    value="" />
-        <div class="email-fields">
-          <input type="text"  name="name"  id="input-name"  placeholder="Your first name" />
-          <input type="email" name="email" id="input-email" placeholder="Your email address" required />
-        </div>
-        <button type="submit" class="btn primary" id="submit-gate-btn" onclick="prepareSubmit()">See my results →</button>
-        <p id="gate-error" style="color:#c0392b;font-size:13px;margin-top:0.6rem;display:none;">Please enter a valid email address.</p>
-        <p class="privacy-note">No spam. No sequences. Just your results and one honest follow-up if it's relevant.</p>
-      </form>
+      <div class="email-fields">
+        <input type="text"  id="input-name"  placeholder="Your first name" />
+        <input type="email" id="input-email" placeholder="Your email address" />
+      </div>
+      <button class="btn primary" id="submit-gate-btn" onclick="submitGate(event)">See my results →</button>
+      <p id="gate-error" style="color:#c0392b;font-size:13px;margin-top:0.6rem;display:none;">Please enter a valid email address.</p>
+      <p id="gate-sending" style="color:#6B6B6B;font-size:13px;margin-top:0.6rem;display:none;">Sending…</p>
+      <p class="privacy-note">No spam. No sequences. Just your results and one honest follow-up if it's relevant.</p>
     </div>
   </div>
 
@@ -641,16 +633,23 @@ function prevQ() {
   if (currentQ > 0) { currentQ--; renderQ(); }
 }
 
-function prepareSubmit() {
+function submitGate(e) {
+  e.preventDefault();
+
+  const respName  = (document.getElementById('input-name').value  || '').trim();
   const respEmail = (document.getElementById('input-email').value || '').trim();
   const errorEl   = document.getElementById('gate-error');
+  const sendingEl = document.getElementById('gate-sending');
+  const submitBtn = document.getElementById('submit-gate-btn');
 
+  // Validate email
   if (!respEmail || !/\S+@\S+\.\S+/.test(respEmail)) {
     errorEl.style.display = 'block';
-    event.preventDefault();
     return;
   }
   errorEl.style.display = 'none';
+  submitBtn.disabled = true;
+  sendingEl.style.display = 'block';
 
   // Score calculation
   const dimScores = [0,0,0,0,0];
@@ -663,42 +662,32 @@ function prepareSubmit() {
   const pct     = dimScores.map((s, i) => dimMax[i] > 0 ? Math.round((s / dimMax[i]) * 100) : 0);
   const profile = getProfile(pct);
   const p       = PROFILES[profile];
-
-  const respName   = (document.getElementById('input-name').value || '').trim();
   const dimSummary = DIMS.map((d, i) => `${d}: ${pct[i]}%`).join(' | ');
 
-  // Populate hidden fields for Formspree
-  document.getElementById('hf-subject').value = `ROVER Scorecard — ${p.tag} — ${respName || respEmail}`;
-  document.getElementById('hf-profile').value = p.tag;
-  document.getElementById('hf-scores').value  = dimSummary;
-
-  // Store results in sessionStorage so we can render after Formspree redirect
-  const resultData = { pct, profile, respName, respEmail };
-  try { sessionStorage.setItem('rover_result', JSON.stringify(resultData)); } catch(e) {}
-
-  // Tell Formspree to redirect back to this page with #results hash
-  document.getElementById('hf-next').value = window.location.href.split('#')[0] + '#results';
-
-  // Allow native form POST to proceed
-  document.getElementById('submit-gate-btn').disabled = true;
-  document.getElementById('submit-gate-btn').textContent = 'Sending…';
+  // POST to Formspree via fetch — Accept: application/json prevents redirect
+  fetch('https://formspree.io/f/meevnrko', {
+    method:  'POST',
+    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name:     respName,
+      email:    respEmail,
+      profile:  p.tag,
+      scores:   dimSummary,
+      _subject: `ROVER Scorecard — ${p.tag} — ${respName || respEmail}`
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    sendingEl.style.display = 'none';
+    // Render results whether Formspree succeeded or not —
+    // never block the user from seeing their profile
+    renderResultScreen(pct, profile, p, respName, respEmail);
+  })
+  .catch(() => {
+    sendingEl.style.display = 'none';
+    renderResultScreen(pct, profile, p, respName, respEmail);
+  });
 }
-
-// On page load — check if we're returning from a Formspree redirect
-window.addEventListener('DOMContentLoaded', () => {
-  if (window.location.hash === '#results') {
-    try {
-      const saved = sessionStorage.getItem('rover_result');
-      if (saved) {
-        const { pct, profile, respName, respEmail } = JSON.parse(saved);
-        sessionStorage.removeItem('rover_result');
-        const p = PROFILES[profile];
-        document.getElementById('intro-screen').classList.add('hidden');
-        renderResultScreen(pct, profile, p, respName, respEmail);
-      }
-    } catch(e) {}
-  }
-});
 
 function renderResultScreen(pct, profile, p, respName, respEmail) {
   document.getElementById('email-screen').classList.add('hidden');
